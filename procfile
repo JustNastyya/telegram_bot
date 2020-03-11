@@ -1,7 +1,0 @@
-run: python bot.py $PORT
-runn: python bot.py $PORT
-runr: python bot.py
-runl: python bot.py
-runf: python bot.py
-rund: python bot.py
-fuck: python config.py

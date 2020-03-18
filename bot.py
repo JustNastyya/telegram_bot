@@ -1,11 +1,11 @@
 import telebot
-from stuff import *
+# from stuff import *
 from mysql import connector
 
 
 # https://habr.com/ru/post/350648/ time when i will need to wait for answer will come and then...
 
-bot = telebot.TeleBot(token)
+bot = telebot.TeleBot('700325444:AAHrC3QgLOXWATmDmbIUq8n4XCjo0MC4bx0')
 
 # ______________databases init section______________
 usersList = [] # change to []

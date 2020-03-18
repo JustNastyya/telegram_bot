@@ -11,11 +11,13 @@ bot = telebot.TeleBot('700325444:AAHrC3QgLOXWATmDmbIUq8n4XCjo0MC4bx0')
 usersList = [] # change to []
 answer = ''
 
+# mysql://b3e60dc561c36c:9d3e7e2b@eu-cdbr-west-02.cleardb.net/heroku_8e1964d3a4dc12f?reconnect=true
+
 mydb = connector.connect(
-    host='localhost',  # ?????
-    user="root",
-    passwd='nindroid',
-    database='users'
+    host='eu-cdbr-west-02.cleardb.net',  # ?????
+    user="b3e60dc561c36c",
+    passwd='//b3e60dc561c36c:9d3e7e2b',
+    database='heroku_8e1964d3a4dc12f'
 )
 
 cursorDB = mydb.cursor()

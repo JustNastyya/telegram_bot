@@ -8,34 +8,43 @@ from mysql import connector
 bot = telebot.TeleBot('700325444:AAHrC3QgLOXWATmDmbIUq8n4XCjo0MC4bx0')
 
 # ______________databases init section______________
-usersList = [] # change to []
+usersList = ['JustNastyaa'] # change to []
 answer = ''
 
 # mysql://b3e60dc561c36c:9d3e7e2b@eu-cdbr-west-02.cleardb.net/heroku_8e1964d3a4dc12f?reconnect=true
 
 mydb = connector.connect(
-    host='eu-cdbr-west-02.cleardb.net',  # ?????
-    user="b3e60dc561c36c",
-    passwd='//b3e60dc561c36c:9d3e7e2b',
-    database='heroku_8e1964d3a4dc12f'
+    host='us-cdbr-gcp-east-01.cleardb.net',  # ?????
+    user='b6a98ca53090be',  # "b3e60dc561c36c",
+    passwd='aa2d7024',
+    database='gcp_7c9c726b38df1d89673f'
 )
 
 cursorDB = mydb.cursor()
 
 # non official zone
+
+#cursorDB.execute("SHOW DATABASES")
+#print([i for i in cursorDB])
+
 #cursorDB.execute('DROP TABLE justnastyaa')
 #cursorDB.execute('SELECT * FROM usersMain')
 #print([i for i in cursorDB])
 
+# bot.send_message()
+'''
+cursorDB.execute("GRANT ALL PRIVILEGES ON Growth.* TO 'b6a98ca53090be'@'%' WITH GRANT OPTION")
+cursorDB.execute("FLUSH PRIVILEGES")
 
-cursorDB.execute('CREATE DATABASE users')
+'''
+# cursorDB.execute('CREATE DATABASE Growth')
 
 cursorDB.execute("CREATE TABLE usersMain (\
                 id INT AUTO_INCREMENT PRIMARY KEY, \
                 username VARCHAR(255), \
                 sinceLast TINYINT(255), \
-                medium FLOAT(10, 2)),\
-                testON BOOL")
+                medium FLOAT(10, 2),\
+                testON BOOLEAN)")
 
 
 keyboardMain = telebot.types.ReplyKeyboardMarkup(True)

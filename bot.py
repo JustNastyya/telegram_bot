@@ -8,7 +8,6 @@ from mysql import connector
 bot = telebot.TeleBot('700325444:AAHrC3QgLOXWATmDmbIUq8n4XCjo0MC4bx0')
 
 # ______________databases init section______________
-usersList = ['JustNastyaa'] # change to []
 answer = ''
 
 # mysql://b3e60dc561c36c:9d3e7e2b@eu-cdbr-west-02.cleardb.net/heroku_8e1964d3a4dc12f?reconnect=true
@@ -21,6 +20,8 @@ mydb = connector.connect(
 )
 
 cursorDB = mydb.cursor()
+#cursorDB.execute('SELECT * FROM usersMain')
+#print(list(cursorDB))
 
 # non official zone
 
@@ -38,9 +39,10 @@ cursorDB.execute("FLUSH PRIVILEGES")
 
 '''
 # cursorDB.execute('CREATE DATABASE Growth')
+cursorDB.execute("SHOW TABLES")
+usersList = [i[0] for i in cursorDB if i[0].lower() != 'usersmain'] # change to []
 
-cursorDB.execute("CREATE TABLE usersMain (\
-                id INT AUTO_INCREMENT PRIMARY KEY, \
+cursorDB.execute("CREATE TABLE IF NOT EXISTS usersMain (\
                 username VARCHAR(255), \
                 sinceLast TINYINT(255), \
                 medium FLOAT(10, 2),\
@@ -85,24 +87,25 @@ def send_text(message):
         bot.reply_to(message, 'Таких иероглифов нет в моих писаньях')
     
     nickname = message.from_user.username
-    if message.from_user.username not in usersList:
+    if message.from_user.username.lower() not in usersList:
         cursorDB.execute(f'INSERT INTO usersMain (username, sinceLast, medium, testON) VALUES ("{nickname}", 0, 6.0, 1)')
 
-        cursorDB.execute(f"CREATE TABLE {nickname} (\
+        cursorDB.execute(f"CREATE TABLE IF NOT EXISTS {nickname} (\
                                         id INT AUTO_INCREMENT PRIMARY KEY,\
                                         task VARCHAR(255),\
                                         mark INT(255), \
                                         date DATE)")
         usersList.append(message.from_user.username)
-        print(message.from_user.username)
 
 
     else:
-        cursorDB.execute(f'SELECT testON FROM usersMain WHERE username="{nickname}"')
-        if list(cursorDB)[0]:
+        cursorDB.execute(f'SELECT testON FROM usersMain WHERE username="{nickname.lower()}"')
+        oy = list(cursorDB)
+        # print(oy[0][0])  # i need this!!!
+        if oy[0][0]:
             cursorDB.execute(f'SELECT sinceLast FROM usersMain WHERE username="{nickname}"')
             previousCounter = list(cursorDB)[0][0]
-            print(previousCounter)
+            # print(previousCounter)
 
             if previousCounter >= 6:  # change to 15
                 msg = bot.send_message(message.chat.id, 'вы накопили какое то кол-во знаний, не хотите ли себя испытать?', reply_markup=keyboardYesOrNo)

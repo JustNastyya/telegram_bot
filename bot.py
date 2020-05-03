@@ -32,8 +32,8 @@ def cleverJoin(smth):
 
 
 def shitMain(n):
-    first = choice(words).lower().capitalize()
-    ans = [first]
+    first = choice(words)
+    ans = [first.capitalize()]
     for _ in range(n - 1):
         flag = True
         while flag:
@@ -78,8 +78,8 @@ cursorDB.execute("CREATE TABLE IF NOT EXISTS usersMain (\
 
 # locals
 cursorDB.execute("SHOW TABLES")
-usersList = set([i[0] for i in cursorDB if i[0].lower() != 'usersmain']) # change to []
-print(usersList)
+usersList = set([i[0] for i in cursorDB if i[0].lower() != 'usersmain'])
+print(usersList)  # so that i could know when the show begins
 answer = ''
 isRunning = False
 
@@ -101,20 +101,22 @@ keyboardSettings.row('показать мою статистику', 'обрат
 
 keyboardTestSettings = telebot.types.ReplyKeyboardMarkup(True)  # reply to settings
 keyboardTestSettings.row('изменить частоту вопроса о тесте', 'провести тест сейчас')
-keyboardTestSettings.row('отключить/включить опцию автоматический предлагать провести тест')
+keyboardTestSettings.row(
+    'отключить/включить опцию автоматический предлагать провести тест'
+    )
 keyboardTestSettings.row('обратно!')
 
 
 def createEnviromentForNewUser(nickname):
     cursorDB.execute(f'INSERT INTO usersMain \
-                                    (username, sinceLast, medium, testON, askTest)\
-                                    VALUES ("{nickname}", 0, 6.0, 1, 15)')
+                    (username, sinceLast, medium, testON, askTest)\
+                    VALUES ("{nickname}", 0, 6.0, 1, 15)')
 
     cursorDB.execute(f"CREATE TABLE IF NOT EXISTS {nickname} (\
-                                    id INT AUTO_INCREMENT PRIMARY KEY,\
-                                    task VARCHAR(255),\
-                                    mark INT(255), \
-                                    date DATE)")
+                    id INT AUTO_INCREMENT PRIMARY KEY,\
+                    task VARCHAR(255),\
+                    mark INT(255), \
+                    date DATE)")
     usersList.add(nickname.lower())
     mydb.commit()
 
@@ -124,21 +126,38 @@ def askTest(message):
     answer = message.text
 
     if answer.lower() == 'да':
-        msg = bot.send_message(message.chat.id, 'отлично, начинаем (тест)')
+        msg = bot.send_message(
+            message.chat.id,
+            'отлично, начинаем (тест)'
+            )
         test()
         isRunning = False
 
     elif answer.lower() == 'нет':
-        msg = bot.send_message(message.chat.id, 'ладно, как хочешь', reply_markup=keyboardMain)
+        msg = bot.send_message(
+            message.chat.id, 
+            'ладно, как хочешь', 
+            reply_markup=keyboardMain
+            )
         isRunning = False
 
     elif answer.lower() == 'никогда не спрашивать':
-        cursorDB.execute(f'UPDATE usersMain SET testON=0 WHERE username="{message.from_user.username}"')
-        msg = bot.send_message(message.chat.id, wontBotherText, reply_markup=keyboardMain)
+        cursorDB.execute(
+            f'UPDATE usersMain SET testON=0\
+                WHERE username="{message.from_user.username}"'
+            )
+        msg = bot.send_message(
+            message.chat.id, wontBotherText, 
+            reply_markup=keyboardMain
+            )
         isRunning = False
 
     else:
-        bot.send_message(message.chat.id, 'вы неправильно ответили(придумать что нибудь здесь)', reply_markup=keyboardTestSettings)
+        bot.send_message(
+            message.chat.id, 
+            'вы неправильно ответили(придумать что нибудь здесь)',
+            reply_markup=keyboardTestSettings
+            )
         isRunning = False  # yeah, i know i am such an idiot
 
 
@@ -151,25 +170,44 @@ def askDelete(message):
     answer = message.text
     if answer.lower() == 'да':
         nickname = message.from_user.username
-        msg = bot.send_message(message.chat.id, 'удаляю, пожалуйста подождите...')
+        msg = bot.send_message(
+            message.chat.id,
+            'удаляю, пожалуйста подождите...'
+            )
         cursorDB.execute(f'DROP TABLE {nickname}')
-        cursorDB.execute(f"DELETE FROM usersMain WHERE username='{nickname}'")
+        cursorDB.execute(
+            f"DELETE FROM usersMain WHERE username='{nickname}'"
+            )
         usersList.discard(nickname.lower())
-        bot.send_message(message.chat.id, 'Ваша история была удалена', reply_markup=keyboardMain)
+        bot.send_message(message.chat.id,
+                        'Ваша история была удалена',
+                        reply_markup=keyboardMain
+                        )
         isRunning = False
 
     elif answer.lower() == 'нет':
-        msg = bot.send_message(message.chat.id, 'ладно, тогда продолжаем', reply_markup=keyboardMain)
+        msg = bot.send_message(
+            message.chat.id,
+            'ладно, тогда продолжаем', 
+            reply_markup=keyboardMain
+            )
         isRunning = False
 
     else:
-        bot.send_message(message.chat.id, 'вы неправильно ответили(придумать что нибудь здесь)', reply_markup=keyboardTestSettings)
+        bot.send_message(
+            message.chat.id,
+            'вы неправильно ответили(придумать что нибудь здесь)', 
+            reply_markup=keyboardTestSettings
+            )
         isRunning = False  # shouldnt be here, add recursion, idiot!
 
 
 def clearHistory(message):
     global isRunning
-    msg = bot.send_message(message.chat.id, deleteHistoryQuestion, reply_markup=keyboardYesNoNever)
+    msg = bot.send_message(
+        message.chat.id, deleteHistoryQuestion, 
+        reply_markup=keyboardYesNoNever
+        )
     bot.register_next_step_handler(msg, askDelete)
     isRunning = True
 
@@ -179,29 +217,57 @@ def changeTestRegularity(message):
     answer = message.text.lower()
 
     if answer.isdigit() and int(answer) > 0 and int(answer) < 2000000000:
-        cursorDB.execute(f'UPDATE usersMain SET askTest={int(answer)} WHERE username="{message.from_user.username}"')
-        bot.send_message(message.chat.id, f'Теперь я буду предлагать вам пройти тест раз в {answer} раз', reply_markup=keyboardTestSettings)
+        cursorDB.execute(
+            f'UPDATE usersMain SET askTest={int(answer)}\
+                WHERE username="{message.from_user.username}"')
+        bot.send_message(
+            message.chat.id, 
+            f'Теперь я буду предлагать вам пройти тест раз в {answer} раз', 
+            reply_markup=keyboardTestSettings
+            )
         isRunning = False
 
     elif answer == 'q':
-        bot.send_message(message.chat.id, 'Ладно, продолжаем', reply_markup=keyboardTestSettings)
+        bot.send_message(
+            message.chat.id, 
+            'Ладно, продолжаем', 
+            reply_markup=keyboardTestSettings
+            )
         isRunning = False
 
     else:
-        bot.send_message(message.chat.id, 'Вы неправильно ввели число', reply_markup=keyboardTestSettings)
-        isRunning = False  # idiot!!! when ar knot going to make a normal system?!
+        bot.send_message(
+            message.chat.id, 
+            'Вы неправильно ввели число', 
+            reply_markup=keyboardTestSettings
+            )
+        isRunning = False  # idiot!!! when ar knot going to make working system?!
 
 
 def turnOnOffTest(message):
     nickname = message.from_user.username
-    cursorDB.execute(f'SELECT testON FROM usersMain WHERE username="{nickname.lower()}"')
+    cursorDB.execute(
+        f'SELECT testON FROM usersMain\
+        WHERE username="{nickname.lower()}"'
+        )
     testON = list(cursorDB)[0][0]
-    cursorDB.execute(f'UPDATE usersMain SET testON={abs(testON - 1)} WHERE username="{message.from_user.username}"')
+    cursorDB.execute(
+        f'UPDATE usersMain SET testON={abs(testON - 1)}\
+        WHERE username="{message.from_user.username}"'
+        )
 
     if testON:
-        bot.send_message(message.chat.id, wontBotherSettingsText, reply_markup=keyboardTestSettings)
+        bot.send_message(
+            message.chat.id, 
+            wontBotherSettingsText, 
+            reply_markup=keyboardTestSettings
+            )
     else:
-        bot.send_message(message.chat.id, willbotherSettingsText, reply_markup=keyboardTestSettings)
+        bot.send_message(
+            message.chat.id, 
+            willbotherSettingsText, 
+            reply_markup=keyboardTestSettings
+            )
 
 
 def showInfo(message):  # for hacker mode
@@ -209,8 +275,8 @@ def showInfo(message):  # for hacker mode
     ListPeople = '\n'.join(' '.join(str(j) for j in i) for i in list(cursorDB)) + '\n'
     cursorDB.execute('SHOW TABLES')
     ListPeople = '-В usersMain: \n' + ListPeople + '-ЛИЧНЫЕ ТАБЛИЦЫ: ' + '\n'
-    ListPeople += '\n'.join(str(i) for i in list(cursorDB)) + '\n' + '-ЛОКАЛЬНЫЙ СПИСОК: \n'
-    ListPeople += '\n'.join(i for i in usersList)
+    ListPeople += '\n'.join(str(i) for i in list(cursorDB)) + '\n'
+    ListPeople += '-ЛОКАЛЬНЫЙ СПИСОК: \n' + '\n'.join(i for i in usersList)
     bot.send_message(message.chat.id, ListPeople)
 
 
@@ -246,7 +312,8 @@ def send_text(message):
         bot.send_message(message.chat.id, theoryText)
     
     elif ms in ['дополнительно', 'обратно!']:
-        bot.send_message(message.chat.id, settingsText, reply_markup=keyboardSettings)
+        bot.send_message(message.chat.id, settingsText,
+                        reply_markup=keyboardSettings)
     
     elif ms == 'очистить мою историю':
         clearHistory(message)
@@ -262,13 +329,15 @@ def send_text(message):
         isRunning = False
 
     elif ms == 'настройки теста':
-        bot.send_message(message.chat.id, 'Это насройки теста!', reply_markup=keyboardTestSettings)
+        bot.send_message(message.chat.id, 'Это насройки теста!',
+                        reply_markup=keyboardTestSettings)
     
     elif ms == 'отключить/включить опцию автоматический предлагать провести тест':
         turnOnOffTest(message)
     
     elif ms == 'обратно':
-        bot.send_message(message.chat.id, 'как хочешь', reply_markup=keyboardMain)
+        bot.send_message(message.chat.id, 'как хочешь',
+                        reply_markup=keyboardMain)
 
     elif ms == 'я тебя люблю':  # secret unexpected message
         bot.send_sticker(message.chat.id, 'CAADAgADZgkAAnlc4gmfCor5YbYYRAI')
@@ -288,25 +357,37 @@ def send_text(message):
         createEnviromentForNewUser(nickname)
 
     elif not(isRunning):  # count all users actions and insert into a table 
-        cursorDB.execute(f'SELECT testON FROM usersMain WHERE username="{nickname.lower()}"')
+        cursorDB.execute(
+            f'SELECT testON FROM usersMain WHERE username="{nickname.lower()}"'
+            )
         testON = list(cursorDB)
         print('testON: ', testON[0][0])
+
         if testON[0][0]:
-            cursorDB.execute(f'SELECT sinceLast, askTest FROM usersMain WHERE username="{nickname}"')
+            cursorDB.execute(
+                f'SELECT sinceLast, askTest FROM usersMain WHERE username="{nickname}"'
+                )
             info = list(cursorDB)
             previousCounter = info[0][0]
             testRegularity = info[0][1]
             print('previous counter: ', previousCounter)
 
             if previousCounter >= testRegularity:  # by defaut 15
-                msg = bot.send_message(message.chat.id, testQuestion, reply_markup=keyboardYesNoNever)
-                cursorDB.execute(f'UPDATE usersMain SET sinceLast=0 WHERE username="{nickname}"')
+                msg = bot.send_message(
+                    message.chat.id, testQuestion, reply_markup=keyboardYesNoNever
+                    )
+                cursorDB.execute(
+                    f'UPDATE usersMain SET sinceLast=0 WHERE username="{nickname}"'
+                    )
                 mydb.commit()
 
                 bot.register_next_step_handler(msg, askTest)
                 isRunning = True
             else:
-                cursorDB.execute(f'UPDATE usersMain SET sinceLast={previousCounter + 1} WHERE username="{nickname}"')
+                cursorDB.execute(
+                    f'UPDATE usersMain SET sinceLast={previousCounter + 1}\
+                        WHERE username="{nickname}"'
+                        )
             mydb.commit()
 
 
